@@ -1,14 +1,9 @@
-// src/controllers/userController.ts
+
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import bcrypt from "bcryptjs";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { User } from "../models/User";
-
-/**
- * GET /api/users
- * Admin only - list users with basic pagination
- */
 export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
   const limit = Math.max(Number(req.query.limit) || 20, 1);
@@ -26,10 +21,6 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-/**
- * GET /api/users/:id
- * Admin only - get a single user by id
- */
 export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!Types.ObjectId.isValid(id)) {
@@ -41,11 +32,6 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, data: user });
 });
-
-/**
- * PUT /api/users/profile
- * Protected - update current user's profile
- */
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   const currentUser = (req as any).user;
   if (!currentUser || !currentUser.id) {
@@ -73,10 +59,6 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
   res.status(200).json({ success: true, message: "Profile updated", data: userSafe });
 });
 
-/**
- * PUT /api/users/:id/role
- * Admin only - update a user's role
- */
 export const updateUserRole = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { role } = req.body as { role?: string };
@@ -97,10 +79,6 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response) =
   res.status(200).json({ success: true, message: "User role updated", data: { _id: user._id, role: user.role } });
 });
 
-/**
- * DELETE /api/users/:id
- * Admin only - delete user
- */
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!Types.ObjectId.isValid(id)) {

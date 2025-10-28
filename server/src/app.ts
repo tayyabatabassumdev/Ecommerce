@@ -3,32 +3,33 @@ import cors from "cors";
 import dotenv from "dotenv";
 import testRoutes from "./routes/testRoutes";
 import productRoutes from "./routes/productRoutes";
-import { errorHandler } from "./middleware/errorMiddleware";
 import authRoutes from "./routes/authRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import userRoutes from "./routes/userRoutes";
 import cartRoutes from "./routes/cartRoutes";
-
-// existing routes...
-
-dotenv.config();
-
+import orderRoutes from "./routes/orderRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
+import returnRoutes from "./routes/returnRoutes";
+import pageRoutes from "./routes/pageRoutes";
+import termRoutes from "./routes/termRoutes";
+import { errorHandler } from "./middleware/errorMiddleware";
 const app = express();
-
 app.use(cors());
 app.use(express.json());
-
-// health
+dotenv.config();
 app.get("/", (_req, res) => res.json({ success: true, message: "API is live" }));
-
-// routes
 app.use("/api/test", testRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
-// global error handler (must be after routes)
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/returns", returnRoutes);
+app.use("/api/pages", pageRoutes);
+app.use("/api/terms", termRoutes);
 app.use(errorHandler);
-
 export default app;

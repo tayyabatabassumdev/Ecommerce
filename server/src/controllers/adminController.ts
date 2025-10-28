@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/User";
 import { asyncHandler } from "../middleware/asyncHandler";
-
-// @route   POST /api/admin/create
-// @access  Private (Admin only)
+import { Order } from "../models/Order";
 export const createAdminUser = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
@@ -22,7 +20,7 @@ export const createAdminUser = asyncHandler(async (req: Request, res: Response) 
     name,
     email,
     password,
-    role: "admin" // 👈 Hardcoded for security
+    role: "admin" 
   });
 
   res.status(201).json({
@@ -35,4 +33,41 @@ export const createAdminUser = asyncHandler(async (req: Request, res: Response) 
       role: newAdmin.role,
     },
   });
+});
+export const getAdminStats = asyncHandler(async (req: Request, res: Response) => {
+  const totalUsers = await User.countDocuments();
+  const totalOrders = await Order.countDocuments();
+  const totalRevenue = await Order.aggregate([
+    { $match: { paymentStatus: "Paid" } },
+    { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+  ]);
+
+  const pendingOrders = await Order.countDocuments({ status: "pending" });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      totalUsers,
+      totalOrders,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      pendingOrders,
+    },
+  });
+});
+export const getAllOrdersAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const orders = await Order.find()
+    .populate("user", "name email")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({ success: true, data: orders });
+});
+export const deleteOrderAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const order = await Order.findByIdAndDelete(id);
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: "Order not found" });
+  }
+
+  res.status(200).json({ success: true, message: "Order deleted successfully" });
 });

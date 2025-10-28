@@ -2,17 +2,11 @@ import { Request, Response } from "express";
 import { Product } from "../models/Product";
 import { asyncHandler } from "../middleware/asyncHandler";
 
-/**
- * GET /api/products
- */
 export const getAllProducts = asyncHandler(async (_req: Request, res: Response) => {
   const products = await Product.find().sort({ createdAt: -1 });
   res.status(200).json({ success: true, data: products });
 });
 
-/**
- * GET /api/products/:id
- */
 export const getProductById = asyncHandler(async (req: Request, res: Response) => {
   const product = await Product.findById(req.params.id);
   if (!product) {
@@ -22,9 +16,6 @@ export const getProductById = asyncHandler(async (req: Request, res: Response) =
   res.json({ success: true, data: product });
 });
 
-/**
- * POST /api/products
- */
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const { name, basePrice, category } = req.body;
   if (!name || basePrice == null || !category) {
@@ -36,9 +27,6 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
   res.status(201).json({ success: true, data: product });
 });
 
-/**
- * PUT /api/products/:id
- */
 export const updateProduct = asyncHandler(async (req: Request, res: Response) => {
   const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!updated) {
@@ -48,9 +36,6 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
   res.json({ success: true, data: updated });
 });
 
-/**
- * DELETE /api/products/:id
- */
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
   const deleted = await Product.findByIdAndDelete(req.params.id);
   if (!deleted) {
@@ -81,9 +66,8 @@ export const searchProducts = asyncHandler(async (req: Request, res: Response) =
   const products = await Product.find(filter).select("-__v").sort({ createdAt: -1 });
   res.status(200).json({ success: true, count: products.length, data: products });
 });
-// ✅ Update stock for product or variant
 export const updateStock = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params; // product ID
+  const { id } = req.params; 
   const { variantId, stock } = req.body;
 
   const product = await Product.findById(id);

@@ -3,29 +3,17 @@ import { asyncHandler } from "../middleware/asyncHandler";
 import { Cart } from "../models/Cart";
 import { Product } from "../models/Product";
 import mongoose from "mongoose";
-
-/**
- * @desc Add item to cart (guest or user)
- * @route POST /api/cart
- * @access Public
- */
 export const addToCart = asyncHandler(async (req: Request, res: Response) => {
   const { productId, variantId, quantity, price } = req.body;
   const userId = (req as any).user?._id || null;
-
-  // validate product existence
   const product = await Product.findById(productId);
   if (!product) {
     return res.status(404).json({ success: false, message: "Product not found" });
   }
-
-  // find existing cart (by user or sessionless guest)
   let cart = await Cart.findOne({ user: userId });
   if (!cart) {
     cart = new Cart({ user: userId, items: [] });
   }
-
-  // check if item already exists (same product + variant)
   const existingItem = cart.items.find(
     (i: any) =>
       i.productId.toString() === productId &&
@@ -42,11 +30,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, message: "Cart updated", data: cart });
 });
 
-/**
- * @desc Get current user's or guest's cart
- * @route GET /api/cart
- * @access Public
- */
 export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?._id || null;
 
@@ -62,11 +45,6 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: cart });
 });
 
-/**
- * @desc Update item quantity
- * @route PUT /api/cart
- * @access Public
- */
 export const updateQuantity = asyncHandler(async (req: Request, res: Response) => {
   const { productId, variantId, quantity } = req.body;
   const userId = (req as any).user?._id || null;
@@ -84,7 +62,6 @@ export const updateQuantity = asyncHandler(async (req: Request, res: Response) =
   }
 
   if (quantity < 1) {
-    // remove item if quantity set to 0
     cart.items = cart.items.filter(
       (i: any) =>
         !(
@@ -99,14 +76,9 @@ export const updateQuantity = asyncHandler(async (req: Request, res: Response) =
   await cart.save();
   res.status(200).json({ success: true, data: cart });
 });
-/**
- * @desc Remove an item from the cart
- * @route DELETE /api/cart/:productId
- * @access Public (works for both guest & logged-in users)
- */
 export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
-  const { variantId } = req.query; // variantId optional (for multi-variant products)
+  const { variantId } = req.query; 
   const userId = (req as any).user?._id || null;
 
   const cart = await Cart.findOne({ user: userId });
@@ -129,11 +101,7 @@ export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   await cart.save();
   res.status(200).json({ success: true, message: "Item removed", data: cart });
 });
-/**
- * @desc Clear entire cart
- * @route DELETE /api/cart
- * @access Public (guest or logged-in)
- */
+
 export const clearCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?._id || null;
   const cart = await Cart.findOne({ user: userId });
@@ -145,11 +113,7 @@ export const clearCart = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, message: "Cart cleared successfully" });
 });
-/**
- * @desc Merge guest cart with user cart (on login)
- * @route POST /api/cart/sync
- * @access Private
- */
+
 export const syncCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user._id;
   const { guestCart } = req.body;

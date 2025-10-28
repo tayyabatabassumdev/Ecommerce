@@ -66,7 +66,6 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: user });
 });
 export const logout = asyncHandler(async (req: Request, res: Response) => {
-  // Since JWT is stateless, logout just means frontend removes the token.
   res.status(200).json({
     success: true,
     message: "User logged out successfully (client should remove token).",

@@ -1,8 +1,26 @@
 import { Request, Response, NextFunction } from "express";
+import { ApiResponse } from "../utils/apiResponse";
 
-export const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  console.error("Error:", err);
-  res.status(status).json({ success: false, message });
+export const errorHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.error("❌ Error:", err);
+
+  const statusCode = err.statusCode || 500;
+  const message =
+    err.message || "Internal Server Error — Something went wrong.";
+
+  const response: ApiResponse = {
+    success: false,
+    message,
+    error:
+      process.env.NODE_ENV === "development"
+        ? err.stack
+        : undefined,
+  };
+
+  res.status(statusCode).json(response);
 };

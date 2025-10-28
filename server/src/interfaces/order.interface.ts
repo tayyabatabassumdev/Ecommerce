@@ -1,21 +1,37 @@
 import { Document, Types } from "mongoose";
 
+export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+export type PaymentStatus = "Pending" | "Paid" | "Failed";
+export type PaymentMethod = "COD" | "Card" | "BankTransfer";
 export interface IOrderItem {
   productId: Types.ObjectId;
-  variantId?: Types.ObjectId | null;
+  variantId?: Types.ObjectId | null; 
+  name: string;
   quantity: number;
-  unitPrice: number;
+  priceAtPurchase: number;
   attributes?: Record<string, string>;
 }
 
+export interface IShippingInfo {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+}
+
 export interface IOrder extends Document {
-  orderId: string; // readable unique ID e.g. ORD-20251027-AB12
-  userId?: Types.ObjectId | null;
-  email?: string; // for guest checkout
+  user?: Types.ObjectId | null;
+  orderId: string;
+  transactionId:String ;
   items: IOrderItem[];
-  total: number;
-  status: "placed" | "processing" | "shipped" | "delivered" | "cancelled";
+  shippingInfo: IShippingInfo;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: PaymentStatus;
+  status: OrderStatus;
   createdAt: Date;
   updatedAt: Date;
-  shippedAt?: Date;
 }

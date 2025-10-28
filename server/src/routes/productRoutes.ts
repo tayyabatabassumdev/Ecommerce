@@ -14,12 +14,9 @@ import { authorize } from "../middleware/roleMiddleware";
 
 const router = express.Router();
 
-// Public routes
 router.get("/", getAllProducts);
 router.get("/search", searchProducts);
 router.get("/:id", getProductById);
-
-// Admin routes
 router.post("/", protect, authorize("admin"), createProduct);
 router.put("/:id", protect, authorize("admin"), updateProduct);
 router.delete("/:id", protect, authorize("admin"), deleteProduct);
