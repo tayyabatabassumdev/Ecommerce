@@ -25,7 +25,6 @@ const ProductSection = () => {
 
   if (loading) return <div className="text-center py-10">Loading products...</div>;
 
-  // ✅ Move slice BELOW loading check, but ABOVE return
   const previewProducts = products.slice(0, 8);
 
   return (
@@ -52,7 +51,7 @@ const ProductSection = () => {
         ))}
       </div>
 
-      {/* ✅ Add “Show More” button */}
+
       <div className="flex justify-center mt-10">
         <Button
           onClick={() => navigate("/shop")}

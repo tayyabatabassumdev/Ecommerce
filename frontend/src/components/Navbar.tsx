@@ -21,12 +21,9 @@ const items = useCartStore((state) => state.items);
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="flex justify-between items-center px-6 md:px-10 py-4">
-        {/* Logo */}
         <h1 className="text-2xl font-bold text-yellow-600 cursor-pointer" onClick={() => navigate("/")}>
           Furnito
         </h1>
-
-        {/* Desktop Menu */}
         <ul className="hidden md:flex space-x-8 items-center">
           {navLinks.map((link) => (
             <li
@@ -38,8 +35,6 @@ const items = useCartStore((state) => state.items);
               <Link to={link.path}>{link.name}</Link>
             </li>
           ))}
-
-          {/* Auth Links */}
           {!user ? (
             <>
               <li className="cursor-pointer hover:text-yellow-600 transition">
@@ -58,8 +53,6 @@ const items = useCartStore((state) => state.items);
             </li>
           )}
         </ul>
-
-        {/* Icons */}
         <div className="flex space-x-5 items-center">
           <Heart className="w-5 h-5 cursor-pointer hover:text-yellow-600 transition" />
           <Search className="w-5 h-5 cursor-pointer hover:text-yellow-600 transition" />
@@ -78,8 +71,6 @@ const items = useCartStore((state) => state.items);
     </span>
   )}
 </div>
-
-          {/* Mobile Menu Button */}
           <button
             className="md:hidden focus:outline-none"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -88,8 +79,6 @@ const items = useCartStore((state) => state.items);
           </button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <ul className="md:hidden bg-white shadow-md px-6 pb-4 space-y-3">
           {navLinks.map((link) => (
@@ -103,8 +92,6 @@ const items = useCartStore((state) => state.items);
               <Link to={link.path}>{link.name}</Link>
             </li>
           ))}
-
-          {/* Mobile Auth Links */}
           {!user ? (
             <>
               <li
