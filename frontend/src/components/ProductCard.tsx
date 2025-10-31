@@ -14,7 +14,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         overflow-hidden flex flex-col w-full max-w-xs
       "
     >
-      {/* Product Image */}
+
       <Link to={`/product/${product._id}`} className="block">
         <div className="h-60 flex items-center justify-center bg-gray-50 overflow-hidden">
           <img
@@ -25,9 +25,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       </Link>
 
-      {/* Product Info */}
       <div className="p-4 flex flex-col grow">
-        {/* Title */}
         <h3
           className="text-base font-semibold text-gray-900 line-clamp-2 h-12"
           title={product.name}
@@ -35,14 +33,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.name}
         </h3>
 
-        {/* Category */}
         {product.category && (
           <p className="text-sm text-gray-500 mt-1 capitalize">
             {product.category}
           </p>
         )}
 
-        {/* Price and Button */}
+        {product.variants && product.variants.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {product.variants.map((variant, index) => {
+              const attrText = Object.entries(variant.attributes || {})
+  .map(([key, value]) => `${key}: ${value}`)
+  .join(", ");
+
+              return (
+                <span
+                  key={index}
+                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full border border-gray-200"
+                >
+                  {attrText} (${variant.price})
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-auto flex justify-between items-center pt-3">
           <p className="text-lg font-bold text-yellow-600">
             ${product.basePrice.toFixed(2)}

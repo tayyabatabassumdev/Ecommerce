@@ -11,6 +11,7 @@ const VariantSchema = new Schema(
   { _id: true }
 );
 
+
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true, trim: true },

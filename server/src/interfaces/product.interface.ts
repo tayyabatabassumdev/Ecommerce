@@ -13,7 +13,8 @@ export interface IProduct extends Document {
   category?: string;
   basePrice: number;
   images: string[];
-  variants: Types.DocumentArray<IVariant & Document>;
+    image?: string; // Single main image
+    variants: Types.DocumentArray<IVariant & Document>;
   averageRating?: number;
   numReviews?: number;
   createdAt: Date;

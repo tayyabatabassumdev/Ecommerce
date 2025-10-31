@@ -2,11 +2,22 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { Review } from "../models/Review";
 import { Product } from "../models/Product";
-
+import axios from "axios";
+export const getAllReviews = async (req: Request, res: Response) => {
+  try {
+    const reviews = await Review.find()
+      .populate("user", "name email")
+      .populate("product", "title");
+    res.status(200).json({ success: true, data: reviews });
+  } catch (err:unknown) {
+    if(axios.isAxiosError(err)){
+      res.status(500).json({ success: false, message: err.message })};
+  }
+};
 export const addReview = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user._id;
   const { productId } = req.params;
-  const { rating, comment } = req.body;
+  const { rating, comment ,images} = req.body;
 
   if (!rating || rating < 1 || rating > 5) {
     return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
@@ -17,7 +28,8 @@ export const addReview = asyncHandler(async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: "You already reviewed this product" });
   }
 
-  const review = await Review.create({ user: userId, product: productId, rating, comment });
+  const review = await Review.create({ user: userId, product: productId, rating, comment,images, // 🖼️ new field
+    status: "pending" });
   const reviews = await Review.find({ product: productId });
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
 
@@ -31,11 +43,18 @@ export const addReview = asyncHandler(async (req: Request, res: Response) => {
 export const getReviews = asyncHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
 
-  const reviews = await Review.find({ product: productId })
+  const reviews = await Review.find({
+    product: productId,
+    status: "approved", // ✅ show only approved reviews
+  })
     .populate("user", "name email")
     .sort({ createdAt: -1 });
 
-  res.status(200).json({ success: true, count: reviews.length, data: reviews });
+  res.status(200).json({
+    success: true,
+    count: reviews.length,
+    data: reviews,
+  });
 });
 export const deleteReview = asyncHandler(async (req: Request, res: Response) => {
   const { reviewId } = req.params;

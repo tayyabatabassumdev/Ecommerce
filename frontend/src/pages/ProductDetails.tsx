@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../store/cartStore";
+import ReviewsModule  from "@/components/ReviewsModule";
 
 interface Product {
   _id: string;
@@ -12,6 +13,7 @@ interface Product {
   averageRating: number;
   numReviews: number;
 }
+
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -121,6 +123,9 @@ const base = import.meta.env.VITE_API_URL;
             Buy Now
           </button>
         </div>
+        <div className="mt-16 w-full">
+  <ReviewsModule productId={product._id} />
+</div>
       </div>
     </div>
   );

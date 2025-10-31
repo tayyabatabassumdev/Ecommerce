@@ -1,3 +1,4 @@
+// types/review.ts
 import { Document, Types } from "mongoose";
 
 export interface IReview extends Document {
@@ -5,6 +6,8 @@ export interface IReview extends Document {
   product: Types.ObjectId;
   rating: number;
   comment?: string;
+  images?: string[];
+  status: "pending" | "approved" | "rejected";
   createdAt: Date;
   updatedAt: Date;
 }

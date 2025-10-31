@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
+import ReviewsModule from "@/components/ReviewsModule";
+
+
 import { motion } from "framer-motion";
 import heroo from "@/assets/heroo.jpg";
 import type { Product } from "@/types/Product";
@@ -9,16 +11,22 @@ import axios from "axios";
 // ✅ Reusable Components
 import Header from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useNavigate } from "react-router-dom";
+import ProductCard from "@/components/ProductCard";
+
 
 export default function FurnitureLandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-const base = import.meta.env.VITE_API_URL;
+  const base = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${base}/products`);
+        const res = await axios.get(`${base}/products/`);
         setProducts(res.data.data);
       } catch {
         setError("Failed to load products");
@@ -29,11 +37,45 @@ const base = import.meta.env.VITE_API_URL;
     fetchProducts();
   }, []);
 
+  const categories = useMemo(() => {
+    const map = new Map<
+      string,
+      { name: string; image: string; count: number }
+    >();
+
+    products.forEach((p) => {
+      if (!p.category) return;
+
+      // if category not in map, add it
+      if (!map.has(p.category)) {
+        map.set(p.category, {
+          name: p.category,
+          image:
+            p.images && p.images.length > 0
+              ? p.images[0]
+              : "https://via.placeholder.com/400x300?text=No+Image",
+          count: 1,
+        });
+      } else {
+        const existing = map.get(p.category)!;
+        existing.count += 1;
+
+        // if existing image is placeholder, replace it with this product's image
+        if (
+          existing.image.includes("placeholder") &&
+          p.images &&
+          p.images.length > 0
+        ) {
+          existing.image = p.images[0];
+        }
+      }
+    });
+
+    return Array.from(map.values());
+  }, [products]);
   return (
     <div className="min-h-screen w-full font-sans text-gray-800">
-
       <Header />
-
 
       <section className="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-16 bg-[#f9f7f3] text-center md:text-left">
         <motion.div
@@ -65,21 +107,49 @@ const base = import.meta.env.VITE_API_URL;
       {/* Category Section */}
       <section className="text-center py-16 px-6 md:px-10">
         <h3 className="text-3xl font-bold mb-10">Browse The Range</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {["Living", "Dining", "Bedroom"].map((category) => (
-            <div
-              key={category}
-              className="overflow-hidden rounded-2xl shadow-md group cursor-pointer"
-            >
-              <img
-                src={heroo}
-                alt={category}
-                className="group-hover:scale-105 duration-500 w-full h-[250px] object-cover"
-              />
-              <h4 className="py-4 text-xl font-semibold">{category}</h4>
-            </div>
-          ))}
-        </div>
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {categories.map((category) => (
+              <motion.div
+  key={category.name}
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={() => navigate(`/shop?category=${encodeURIComponent(category.name)}`)}
+  className="overflow-hidden rounded-2xl shadow-md group cursor-pointer bg-white"
+>
+
+                <div className="relative overflow-hidden">
+                  <img
+                    src={
+                      category.image ||
+                      "https://via.placeholder.com/400x300?text=No+Image"
+                    }
+                    alt={category.name}
+                    onError={(e) =>
+                      (e.currentTarget.src =
+                        "https://via.placeholder.com/400x300?text=Image+Not+Found")
+                    }
+                    className="relative z-10 w-full h-[250px] object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 z-0" />
+                </div>
+                <div className="p-6">
+                  <h4 className="text-xl font-semibold mb-2">
+                    {category.name}
+                  </h4>
+                  <p className="text-gray-500 text-xs">
+                    {category.count}{" "}
+                    {category.count === 1 ? "product" : "products"}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <p className="text-gray-500">No categories available</p>
+          </div>
+        )}
       </section>
 
       {/* Products Section */}
@@ -93,40 +163,19 @@ const base = import.meta.env.VITE_API_URL;
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.slice(0, 8).map((product) => (
-              <Card
-                key={product._id}
-                className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl duration-300 bg-white flex flex-col"
-              >
-                <div className="relative">
-                  <img
-                    src={product.images?.[0] || "/images/placeholder.jpg"}
-                    alt={product.name}
-                    className="h-64 w-full object-cover"
-                  />
-                  {product.category && (
-                    <span className="absolute top-4 left-4 bg-yellow-600 text-white text-sm px-3 py-1 rounded-full">
-                      {product.category}
-                    </span>
-                  )}
-                </div>
-                <CardContent className="p-4 flex-1 flex flex-col justify-between text-center">
-                  <h4 className="font-semibold text-lg line-clamp-2">
-                    {product.name}
-                  </h4>
-                  <p className="text-yellow-600 font-bold text-lg mt-2">
-                    ${product.basePrice}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+  <ProductCard key={product._id} product={product} />
+))}
           </div>
         )}
 
         <div className="text-center mt-10">
-          <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-full">
-            Show More
-          </Button>
-        </div>
+  <Button
+    onClick={() => navigate("/shop")}
+    className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-full"
+  >
+    Show More
+  </Button>
+</div>
       </section>
 
       {/* Inspiration Section */}
@@ -152,22 +201,12 @@ const base = import.meta.env.VITE_API_URL;
         </div>
       </section>
 
-      {/* Instagram Section */}
-      <section className="bg-gray-50 py-20 text-center px-6 md:px-10">
-        <h3 className="text-3xl font-bold mb-10">#FurnitoFurniture</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <img
-              key={i}
-              src={heroo}
-              alt="insta"
-              className="rounded-xl object-cover h-[200px] w-full hover:scale-105 duration-500"
-            />
-          ))}
-        </div>
-      </section>
+      
 
-      {/* ✅ Reusable Footer */}
+ 
+<ReviewsModule />
+
+
       <Footer />
     </div>
   );

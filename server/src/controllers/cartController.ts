@@ -1,53 +1,139 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { Cart } from "../models/Cart";
 import { Product } from "../models/Product";
-import mongoose from "mongoose";
+import { IPopulatedCartItem } from "../interfaces/populated-cart.interface";
+
 export const addToCart = asyncHandler(async (req: Request, res: Response) => {
-  const { productId, variantId, quantity, price } = req.body;
-  const userId = (req as any).user?._id || null;
-  const product = await Product.findById(productId);
-  if (!product) {
-    return res.status(404).json({ success: false, message: "Product not found" });
-  }
-  let cart = await Cart.findOne({ user: userId });
-  if (!cart) {
-    cart = new Cart({ user: userId, items: [] });
-  }
-  const existingItem = cart.items.find(
-    (i: any) =>
-      i.productId.toString() === productId &&
-      (!variantId || i.variantId?.toString() === variantId)
-  );
+  try {
+    const { productId, variantId, quantity = 1, price } = req.body;
+    const userId = (req as any).user?._id;
 
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    cart.items.push({productId, variantId, quantity, priceAtAdd:price });
-  }
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
 
-  await cart.save();
-  res.status(200).json({ success: true, message: "Cart updated", data: cart });
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ success: false, message: "Invalid product ID" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) cart = new Cart({ user: userId, items: [] });
+
+    const existingItemIndex = cart.items.findIndex(
+      (i: any) =>
+        i.productId?.toString() === productId &&
+        (!variantId || i.variantId?.toString() === variantId)
+    );
+
+    if (existingItemIndex > -1) {
+      cart.items[existingItemIndex].quantity += quantity;
+      cart.items[existingItemIndex].priceAtAdd = price || product.basePrice;
+    } else {
+      cart.items.push({
+        product: productId,
+        variantId,
+        quantity,
+        priceAtAdd: price || product.basePrice,
+      });
+    }
+
+    await cart.save();
+
+    const populatedCart = await Cart.findById(cart._id)
+      .populate<{ items: IPopulatedCartItem[] }>({
+        path: "items.product",
+        select: "name basePrice category images image",
+        model: "Product",
+      });
+
+    if (!populatedCart) throw new Error("Failed to fetch updated cart");
+
+    const transformedCart = {
+      ...populatedCart.toObject(),
+      items: populatedCart.items.map((item) => ({
+        _id: new mongoose.Types.ObjectId(),
+        product: {
+          _id: item.product._id,
+          name: item.product.name,
+          basePrice: item.product.basePrice,
+          images: item.product.images || [],
+          image: item.product.image,
+        },
+        quantity: item.quantity,
+        priceAtAdd: item.priceAtAdd || item.product.basePrice,
+      })),
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Item added to cart",
+      data: transformedCart,
+    });
+  } catch (error) {
+    console.error("Add to cart error:", error instanceof Error ? error.stack : error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add item to cart",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 });
 
 export const getCart = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?._id || null;
+  try {
+    const userId = (req as any).user?._id;
 
-  const cart = await Cart.findOne({ user: userId }).populate({
-    path: "items.product",
-    select: "name basePrice category",
-  });
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
 
-  if (!cart) {
-    return res.status(200).json({ success: true, data: { items: [] } });
+    const cart = await Cart.findOne({ user: userId })
+      .populate<{ items: IPopulatedCartItem[] }>({
+        path: "items.product",
+        select: "name basePrice category images image",
+        model: "Product",
+      });
+
+    if (!cart) {
+      return res.status(200).json({ success: true, data: { items: [] } });
+    }
+
+    const transformedCart = {
+      ...cart.toObject(),
+      items: cart.items.map((item) => ({
+        _id: new mongoose.Types.ObjectId(),
+        product: {
+          _id: item.product._id,
+          name: item.product.name,
+          basePrice: item.product.basePrice,
+          images: item.product.images || [],
+          image: item.product.image,
+        },
+        quantity: item.quantity,
+        priceAtAdd: item.priceAtAdd || item.product.basePrice,
+      })),
+    };
+
+    res.status(200).json({ success: true, data: transformedCart });
+  } catch (error) {
+    console.error("Get cart error:", error instanceof Error ? error.stack : error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch cart",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
-
-  res.status(200).json({ success: true, data: cart });
 });
-
 export const updateQuantity = asyncHandler(async (req: Request, res: Response) => {
   const { productId, variantId, quantity } = req.body;
-  const userId = (req as any).user?._id || null;
+  const userId = (req as any).user?._id;
 
   const cart = await Cart.findOne({ user: userId });
   if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
@@ -57,18 +143,17 @@ export const updateQuantity = asyncHandler(async (req: Request, res: Response) =
       i.product.toString() === productId &&
       (!variantId || i.variantId?.toString() === variantId)
   );
-  if (!item) {
-    return res.status(404).json({ success: false, message: "Item not found in cart" });
-  }
+
+  if (!item) return res.status(404).json({ success: false, message: "Item not found in cart" });
 
   if (quantity < 1) {
-    cart.items = cart.items.filter(
+    const filteredItems = cart.items.filter(
       (i: any) =>
         !(
           i.product.toString() === productId &&
           (!variantId || i.variantId?.toString() === variantId)
         )
-    );
+    );cart.items.splice(0, cart.items.length, ...filteredItems);
   } else {
     item.quantity = quantity;
   }
@@ -78,21 +163,21 @@ export const updateQuantity = asyncHandler(async (req: Request, res: Response) =
 });
 export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
-  const { variantId } = req.query; 
-  const userId = (req as any).user?._id || null;
+  const { variantId } = req.query;
+  const userId = (req as any).user?._id;
 
   const cart = await Cart.findOne({ user: userId });
   if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
   const originalLength = cart.items.length;
 
-  cart.items = cart.items.filter(
+  const filteredItems = cart.items.filter(
     (i: any) =>
       !(
         i.product.toString() === productId &&
         (!variantId || i.variantId?.toString() === variantId)
       )
-  );
+  );cart.items.splice(0, cart.items.length, ...filteredItems);
 
   if (cart.items.length === originalLength) {
     return res.status(404).json({ success: false, message: "Item not found in cart" });
@@ -103,12 +188,12 @@ export const removeItem = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const clearCart = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?._id || null;
+  const userId = (req as any).user?._id;
   const cart = await Cart.findOne({ user: userId });
 
   if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-  cart.items = [];
+  cart.items.splice(0, cart.items.length);
   await cart.save();
 
   res.status(200).json({ success: true, message: "Cart cleared successfully" });
@@ -123,9 +208,7 @@ export const syncCart = asyncHandler(async (req: Request, res: Response) => {
   }
 
   let userCart = await Cart.findOne({ user: userId });
-  if (!userCart) {
-    userCart = new Cart({ user: userId, items: [] });
-  }
+  if (!userCart) userCart = new Cart({ user: userId, items: [] });
 
   for (const item of guestCart) {
     const existing = userCart.items.find(
