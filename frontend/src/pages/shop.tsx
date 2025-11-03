@@ -1,28 +1,46 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
+import { useLocation, useNavigate } from "react-router-dom";
 const Shop = () => {
   const { products, loading } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sortOption, setSortOption] = useState<string>("Default");
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const searchTerm = queryParams.get("search")?.toLowerCase().trim() || "";
   const categories = useMemo(() => {
     const uniq = new Set<string>();
     products.forEach((p) => {
-      if (p.category) uniq.add(p.category);
+      if (p?.category) {
+        p.category.split(",").forEach((cat) => uniq.add(cat.trim()));
+      }
     });
     return ["All", ...Array.from(uniq)];
   }, [products]);
-
   const filtered = useMemo(() => {
+    if (!Array.isArray(products)) return [];
     let filteredList =
       selectedCategory === "All"
         ? products
-        : products.filter((p) => p.category === selectedCategory);
-
+        : products.filter(
+            (p) =>
+              p?.category &&
+              p.category
+                .split(",")
+                .map((c) => c.trim())
+                .includes(selectedCategory)
+          );
+    if (searchTerm) {
+      filteredList = filteredList.filter(
+        (p) =>
+          p?.name?.toLowerCase().includes(searchTerm) ||
+          p?.description?.toLowerCase().includes(searchTerm)
+      );
+    }
     if (sortOption === "Price: Low to High") {
       filteredList = filteredList
         .slice()
@@ -41,7 +59,10 @@ const Shop = () => {
     }
 
     return filteredList;
-  }, [products, selectedCategory, sortOption]);
+  }, [products, selectedCategory, sortOption, searchTerm]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [searchTerm]);
 
   if (loading) {
     return (
@@ -52,38 +73,31 @@ const Shop = () => {
   return (
     <>
       <Header />
-
       <div className="bg-white min-h-screen py-10 px-3 sm:px-4 md:px-8 lg:px-12">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900">
-            Shop
-          </h1>
+          <h1 className="text-4xl font-semibold text-gray-900">Shop</h1>
           <p className="text-gray-600 mt-3 max-w-xl mx-auto">
-            Browse through our collection of premium furniture and decor.
+            {searchTerm
+              ? `Showing results for “${searchTerm}”`
+              : "Browse through our curated collection of products."}
           </p>
         </div>
-
-        {/* Filters & Sort */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
-          {/* Category Buttons */}
-          <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-            {categories.map((cat) => (
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4">
+          <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar scroll-smooth">
+            {categories.map((category) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm sm:text-base border transition-all duration-200 ${
-                  selectedCategory === cat
-                    ? "bg-black text-white border-black"
-                    : "border-gray-300 text-gray-700 hover:border-black hover:text-black"
+                key={category}
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  selectedCategory === category
+                    ? "bg-yellow-600 text-white shadow-md"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                onClick={() => setSelectedCategory(category)}
               >
-                {cat}
+                {category}
               </button>
             ))}
           </div>
-
-          {/* Sort & Count */}
           <div className="flex items-center gap-4 justify-center md:justify-end">
             <span className="text-gray-500 text-sm">
               {filtered.length} results
@@ -100,33 +114,41 @@ const Shop = () => {
             </select>
           </div>
         </div>
-
-        {/* Products Grid */}
         <div
           className="
-    grid
-    grid-cols-1
-    sm:grid-cols-2
-    md:grid-cols-3
-    lg:grid-cols-3
-    xl:grid-cols-4
-    gap-6
-    w-full
-    max-w-[1400px]
-    mx-auto
-    px-4 sm:px-6 md:px-8
-  "
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            xl:grid-cols-4
+            gap-6
+            w-full
+            max-w-[1400px]
+            mx-auto
+          "
         >
-          {filtered.length > 0 ? (
-            filtered.map((p) => <ProductCard key={p._id} product={p} />)
+          {Array.isArray(filtered) &&
+          filtered.filter((p) => p && p._id).length > 0 ? (
+            filtered
+              .filter((p) => p && p._id)
+              .map((p) => <ProductCard key={p._id} product={p} />)
           ) : (
-            <p className="text-center text-gray-500 col-span-full py-10">
-              No products found.
-            </p>
+            <div className="col-span-full text-center py-16">
+              <p className="text-gray-500 text-lg mb-6">
+                {searchTerm
+                  ? `No results found for “${searchTerm}”.`
+                  : "No products available in this category."}
+              </p>
+              <button
+                onClick={() => navigate("/shop")}
+                className="bg-yellow-600 text-white px-6 py-2 rounded-md hover:bg-yellow-700 transition"
+              >
+                Go Back to Shop
+              </button>
+            </div>
           )}
         </div>
       </div>
-
       <Footer />
     </>
   );

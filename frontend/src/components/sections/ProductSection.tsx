@@ -3,12 +3,10 @@ import type { Product } from "../../types/Product";
 import { getAllProducts } from "../../services/productService";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 const ProductSection = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -23,10 +21,9 @@ const ProductSection = () => {
     fetchProducts();
   }, []);
 
-  if (loading) return <div className="text-center py-10">Loading products...</div>;
-
+  if (loading)
+    return <div className="text-center py-10">Loading products...</div>;
   const previewProducts = products.slice(0, 8);
-
   return (
     <section className="px-8 py-12">
       <h2 className="text-3xl font-semibold mb-8">Our Products</h2>
@@ -44,14 +41,14 @@ const ProductSection = () => {
             />
             <div className="p-4">
               <h3 className="text-lg font-semibold">{product.name}</h3>
-              <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+              <p className="text-gray-600 text-sm mb-2">
+                {product.description}
+              </p>
               <p className="font-bold text-xl">${product.basePrice}</p>
             </div>
           </div>
         ))}
       </div>
-
-
       <div className="flex justify-center mt-10">
         <Button
           onClick={() => navigate("/shop")}
@@ -63,5 +60,4 @@ const ProductSection = () => {
     </section>
   );
 };
-
 export default ProductSection;

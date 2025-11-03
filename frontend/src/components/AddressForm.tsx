@@ -1,11 +1,8 @@
-// src/components/AddressForm.tsx
 import React, { useState } from "react";
 import type { Address } from "../types/checkout";
-
 interface Props {
   onChange: (address: Address) => void;
 }
-
 const AddressForm: React.FC<Props> = ({ onChange }) => {
   const [address, setAddress] = useState<Address>({
     firstName: "",
@@ -19,14 +16,12 @@ const AddressForm: React.FC<Props> = ({ onChange }) => {
     email: "",
     phone: "",
   });
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const updated = { ...address, [name]: value };
     setAddress(updated);
     onChange(updated);
   };
-
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <h3 className="text-xl font-semibold mb-4">Shipping Address</h3>
@@ -116,5 +111,4 @@ const AddressForm: React.FC<Props> = ({ onChange }) => {
     </div>
   );
 };
-
 export default AddressForm;

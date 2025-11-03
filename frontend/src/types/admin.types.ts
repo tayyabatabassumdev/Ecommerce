@@ -18,7 +18,6 @@ export interface AdminProduct {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface ProductVariant {
   _id: string;
   size?: string;
@@ -29,7 +28,6 @@ export interface ProductVariant {
   sold: number;
   images?: string[];
 }
-
 export interface AdminOrder {
   _id: string;
   orderNumber: string;
@@ -59,7 +57,6 @@ export interface AdminOrder {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface OrderItem {
   productId: string;
   productName: string;
@@ -73,7 +70,6 @@ export interface OrderItem {
   price: number;
   total: number;
 }
-
 export interface Address {
   fullName: string;
   phone: string;
@@ -84,13 +80,11 @@ export interface Address {
   zipCode: string;
   country: string;
 }
-
 export interface PaymentMethod {
   type: 'card' | 'bank' | 'cod';
   last4?: string;
   brand?: string;
 }
-
 export interface AdminUser {
   _id: string;
   name: string;
@@ -106,7 +100,6 @@ export interface AdminUser {
   joinedAt: string;
   lastLogin?: string;
 }
-
 export interface Coupon {
   _id: string;
   code: string;
@@ -126,7 +119,6 @@ export interface Coupon {
   createdBy: string;
   createdAt: string;
 }
-
 export interface Review {
   _id: string;
   productId: string;
@@ -146,7 +138,6 @@ export interface Review {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface ReturnRequest {
   _id: string;
   orderId: string;
@@ -164,14 +155,12 @@ export interface ReturnRequest {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface ReturnItem {
   productId: string;
   productName: string;
   quantity: number;
   reason: string;
 }
-
 export interface AdminStats {
   totalRevenue: number;
   totalOrders: number;
@@ -188,13 +177,11 @@ export interface AdminStats {
   topProducts: TopProduct[];
   recentOrders: AdminOrder[];
 }
-
 export interface SalesDataPoint {
   date: string;
   revenue: number;
   orders: number;
 }
-
 export interface TopProduct {
   productId: string;
   name: string;
@@ -202,7 +189,6 @@ export interface TopProduct {
   sold: number;
   revenue: number;
 }
-
 export interface Category {
   _id: string;
   name: string;

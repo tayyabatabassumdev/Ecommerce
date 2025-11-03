@@ -1,17 +1,14 @@
-// src/pages/CheckoutPage.tsx
 import React, { useEffect, useState } from "react";
 import AddressForm from "../components/AddressForm";
 import PaymentForm from "../components/PaymentForm";
 import OrderSummary from "../components/OrderSummary";
 import type { CartItem, Address, PaymentInfo } from "../types/checkout";
 import axios from "axios";
-
 const Checkout: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [address, setAddress] = useState<Address | null>(null);
   const [payment, setPayment] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     const fetchCart = async () => {
       const { data } = await axios.get("/api/cart");
@@ -19,15 +16,15 @@ const Checkout: React.FC = () => {
     };
     fetchCart();
   }, []);
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
-  const shipping = 200; // example
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.priceAtPurchase * item.quantity,
+    0
+  );
+  const shipping = 200;
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
-
   const handlePlaceOrder = async () => {
     if (!address || !payment) return alert("Please fill all details");
-
     setLoading(true);
     try {
       const { data } = await axios.post("/api/orders", {
@@ -37,15 +34,14 @@ const Checkout: React.FC = () => {
       });
       alert(`Order placed! Order ID: ${data.data.orderId}`);
       setLoading(false);
-      // optional: redirect to confirmation page
     } catch (err: unknown) {
-  if (axios.isAxiosError(err)) {
-    alert(err.response?.data?.message || "Something went wrong");
-  } else {
-    alert("Something went wrong");
-  }}
+      if (axios.isAxiosError(err)) {
+        alert(err.response?.data?.message || "Something went wrong");
+      } else {
+        alert("Something went wrong");
+      }
+    }
   };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Checkout</h1>
@@ -74,5 +70,4 @@ const Checkout: React.FC = () => {
     </div>
   );
 };
-
 export default Checkout;

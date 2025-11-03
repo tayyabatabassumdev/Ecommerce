@@ -1,110 +1,117 @@
 import axios from "axios";
-
-const base = import.meta.env.VITE_API_URL;
-
-// -------------------- Types --------------------
-export interface Product {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+export interface CartProduct {
   _id: string;
   name: string;
   basePrice: number;
   images?: string[];
   image?: string;
 }
-
 export interface CartItem {
   _id: string;
-  product: Product;
+  product: CartProduct;
   quantity: number;
   priceAtAdd: number;
   variantId?: string;
-  attributes?: Record<string, string>;
 }
-
 export interface Cart {
-  user: string | null;
+  _id?: string;
+  user?: string;
   items: CartItem[];
-  createdAt?: string;
-  updatedAt?: string;
 }
-
-// -------------------- Auth Config --------------------
-const getAuthConfig = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  const token = user?.token;
-  console.log("User token:", token);
-
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    withCredentials: true, // only if backend uses cookies
-    
-  };
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+  return token
+    ? {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    : {};
 };
 
-// -------------------- Cart Services --------------------
-
-// Get cart
-// ✅ Fix: unwrap `data.data`
 export const getCart = async (): Promise<Cart> => {
-  const config = getAuthConfig();
-  const { data } = await axios.get<{ data: Cart }>(`${base}/cart`, config);
-  return data.data; // returns the actual cart
+  try {
+    const res = await axios.get(`${API_URL}/cart`, authHeaders());
+    if (res.data?.success) {
+      return res.data.data;
+    }
+    console.warn("Unexpected cart response:", res.data);
+    return { items: [] };
+  } catch (err: any) {
+    console.error("Get Cart Error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
-// ✅ Fix: backend returns full cart, so return latest cart data
 export const addToCart = async (
   productId: string,
-  quantity: number,
-  price: number,
-  variantId?: string,
-  attributes?: Record<string, string>
+  quantity = 1,
+  price?: number
 ): Promise<Cart> => {
-  const config = getAuthConfig();
-  const { data } = await axios.post<{ data: Cart }>(
-    `${base}/cart`,
-    { productId, quantity, price, variantId, attributes },
-    config
-  );
-  return data.data; // returns full updated cart
+  try {
+    const payload = { productId, quantity, price };
+    const res = await axios.post(`${API_URL}/cart`, payload, authHeaders());
+    if (res.data?.success) {
+      return res.data.data;
+    }
+    console.warn("Unexpected addToCart response:", res.data);
+    return { items: [] };
+  } catch (err: any) {
+    console.error("Add to Cart Error:", err.response?.data || err.message);
+    throw err;
+  }
 };
-
-// Update quantity
 export const updateCartQuantity = async (
   productId: string,
-  quantity: number,
-  variantId?: string
+  quantity: number
 ): Promise<CartItem> => {
-  const config = getAuthConfig();
-  const { data } = await axios.put<{ data: CartItem }>(
-    `${base}/cart`,
-    { productId, quantity, variantId },
-    config
-  );
-  return data.data;
+  try {
+    const payload = { productId, quantity };
+    const res = await axios.put(`${API_URL}/cart`, payload, authHeaders());
+    if (res.data?.success) {
+      const updatedCart = res.data.data as Cart;
+      const updatedItem = updatedCart.items.find(
+        (i) => i.product._id === productId
+      );
+      if (!updatedItem) throw new Error("Updated item not found");
+      return updatedItem;
+    }
+    throw new Error(res.data?.message || "Failed to update quantity");
+  } catch (err: any) {
+    console.error("Update Quantity Error:", err.response?.data || err.message);
+    throw err;
+  }
 };
-
-// Remove item
-export const removeCartItem = async (
-  productId: string,
-  variantId?: string
-): Promise<CartItem> => {
-  const config = getAuthConfig();
-  const url = variantId ? `${`${base}/cart`}/${productId}?variantId=${variantId}` : `${`${base}/cart`}/${productId}`;
-  const { data } = await axios.delete<{ data: CartItem }>(url, config);
-  return data.data;
+export const removeCartItem = async (productId: string): Promise<void> => {
+  try {
+    await axios.delete(`${API_URL}/cart/${productId}`, authHeaders());
+  } catch (err: any) {
+    console.error("Remove Item Error:", err.response?.data || err.message);
+    throw err;
+  }
 };
-
-// Clear cart
-export const clearCart = async (): Promise<Cart> => {
-  const config = getAuthConfig();
-  const { data } = await axios.delete<{ data: Cart }>(`${base}/cart`, config);
-  return data.data;
+export const clearCart = async (): Promise<void> => {
+  try {
+    await axios.delete(`${API_URL}/cart`, authHeaders());
+  } catch (err: any) {
+    console.error("Clear Cart Error:", err.response?.data || err.message);
+    throw err;
+  }
 };
-
-// Sync cart (e.g., guest cart to user cart after login)
-export const syncCart = async (items: CartItem[]): Promise<Cart> => {
-  const config = getAuthConfig();
-  const { data } = await axios.post<{ data: Cart }>(`${`${base}/cart`}/sync`, { items }, config);
-  return data.data;
+export const syncCart = async (
+  guestCartItems: CartItem[]
+): Promise<Cart> => {
+  try {
+    const payload = { guestCart: guestCartItems };
+    const res = await axios.post(`${API_URL}/cart/sync`, payload, authHeaders());
+    if (res.data?.success) {
+      return res.data.data;
+    }
+    console.warn("Unexpected syncCart response:", res.data);
+    return { items: [] };
+  } catch (err: any) {
+    console.error("Sync Cart Error:", err.response?.data || err.message);
+    throw err;
+  }
 };

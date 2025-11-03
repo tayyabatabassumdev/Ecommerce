@@ -1,6 +1,4 @@
-// src/components/Footer.tsx
 import { Button } from "./ui/button";
-
 export default function Footer() {
   return (
     <footer className="bg-[#f9f7f3] py-10 px-6 md:px-10 mt-10">
@@ -44,7 +42,6 @@ export default function Footer() {
           </Button>
         </div>
       </div>
-
       <p className="text-center text-gray-500 text-sm mt-8">
         © {new Date().getFullYear()} Furnito. All Rights Reserved.
       </p>

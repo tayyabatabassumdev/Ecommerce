@@ -10,17 +10,12 @@ const base = import.meta.env.VITE_API_URL;
     const fetchProducts = async () => {
       try {
         const res = await fetch(`${base}/products`);
-
-        // ✅ This is critical: we must await .json() properly
         const data = await res.json();
         console.log("Fetched products raw response:", data);
-
-        // ✅ Normalize the data shape
         const extracted =
           Array.isArray(data) ? data :
           Array.isArray(data.data) ? data.data :
           [];
-
         setProducts(extracted);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -29,9 +24,7 @@ const base = import.meta.env.VITE_API_URL;
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
-
   return { products, loading };
 };

@@ -6,7 +6,6 @@ export interface CartItem {
   priceAtPurchase: number;
   imageUrl?: string;
 }
-
 export interface Address {
   firstName: string;
   lastName: string;
@@ -19,7 +18,6 @@ export interface Address {
   email: string;
   phone: string;
 }
-
 export interface PaymentInfo {
   method: "COD" | "Card";
   cardNumber?: string;

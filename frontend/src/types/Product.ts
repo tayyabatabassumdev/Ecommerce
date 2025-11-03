@@ -4,7 +4,6 @@ export interface Variant {
   price: number;
   stock: number;
 }
-
 export interface Product {
   _id: string;
   name: string;

@@ -1,8 +1,6 @@
-// src/components/ReviewsModule.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import ReviewCard from "./ReviewCard";
-
 interface Review {
   _id: string;
   user: {
@@ -13,21 +11,18 @@ interface Review {
   comment: string;
   createdAt: string;
 }
-
 interface ReviewsModuleProps {
-  productId?: string; // ✅ make optional
+  productId?: string;
 }
-
 const ReviewsModule: React.FC<ReviewsModuleProps> = ({ productId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const base = import.meta.env.VITE_API_URL;
-
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         const url = productId
           ? `${base}/reviews/${productId}`
-          : `${base}/reviews`; // ✅ fetch all if no productId
+          : `${base}/reviews`;
         const res = await axios.get(url);
         setReviews(res.data.data);
       } catch (error) {
@@ -36,7 +31,6 @@ const ReviewsModule: React.FC<ReviewsModuleProps> = ({ productId }) => {
     };
     fetchReviews();
   }, [productId, base]);
-
   return (
     <section className="py-20 bg-gray-50 px-6 md:px-10 text-center">
       <h3 className="text-3xl font-bold mb-10">What Our Customers Say</h3>
@@ -58,5 +52,4 @@ const ReviewsModule: React.FC<ReviewsModuleProps> = ({ productId }) => {
     </section>
   );
 };
-
 export default ReviewsModule;
