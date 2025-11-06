@@ -1,18 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import LandingPage from "./pages/LandingPage/LandingPage";
 import Shop from "@/pages/shop";
-import Checkout from "./pages/Checkout";
+import Checkout from "./pages/Checkout/Checkout";
 import ProductDetails from "@/pages/ProductDetails";
-import CartPage from "@/pages/CartPage";
+import CartPage from "@/pages/CartPage/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./admin/pages/Dashboard";
 import Products from "./admin/pages/Products";
 import Orders from "./admin/pages/Orders";
 import Coupons from "./admin/pages/Coupons";
-import Reviews from "./admin/pages/Reviews";
 import AddProduct from "./admin/pages/AddProduct";
-import ProtectedRoute from "./components/ProtectedRoute"; 
+import ProtectedRoute from "./components/ProtectedRoute";
 import "./index.css";
 function App() {
   return (
@@ -21,10 +21,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/cart" element={<CartPage />} />
+        <Route path="/register" element={<RegisterPage />} />      
+        <Route path="*" element={<p className="text-center mt-20">Page not found</p>} />
         <Route
           path="/dashboard"
           element={
@@ -66,14 +65,23 @@ function App() {
           }
         />
         <Route
-          path="/adminreviews"
+          path="/checkout"
           element={
-            <ProtectedRoute adminOnly>
-              <Reviews />
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage />
             </ProtectedRoute>
           }
         />
       </Routes>
+      <Toaster position="top-center" />
     </BrowserRouter>
   );
 }

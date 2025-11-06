@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Product } from "../../types/Product";
 import { getAllProducts } from "../../services/productService";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import Button  from "@/components/ui/Button";
 const ProductSection = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

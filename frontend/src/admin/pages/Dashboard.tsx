@@ -86,12 +86,12 @@ const Dashboard: React.FC = () => {
             <SidebarLink
               label="Products"
               icon={<Package className="w-5 h-5" />}
-              onClick={() => navigate("/admin/products")}
+              onClick={() => navigate("/adminproducts")}
             />
             <SidebarLink
               label="Add Product"
               icon={<PlusCircle className="w-5 h-5" />}
-              onClick={() => navigate("/admin/add-product")}
+              onClick={() => navigate("/addproducts")}
             />
             <SidebarLink
               label="Orders"

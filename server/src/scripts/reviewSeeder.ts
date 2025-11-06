@@ -11,16 +11,12 @@ const seedReviews = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
     console.log("MongoDB connected");
-
-    // fetch some products & users for reference
     const products = await Product.find().limit(5);
     const users = await User.find().limit(3);
-
     if (products.length === 0 || users.length === 0) {
       console.log("Please seed users and products first");
       process.exit(1);
     }
-
     const reviewsData = [
       {
         user: users[0]._id,
@@ -51,16 +47,13 @@ const seedReviews = async () => {
         approved: false, 
       },
     ];
-
     await Review.deleteMany();
     const createdReviews = await Review.insertMany(reviewsData);
     console.log(`${createdReviews.length} reviews added`);
-
     process.exit();
   } catch (error) {
     console.error(" Seeding failed:", error);
     process.exit(1);
   }
 };
-
 seedReviews();

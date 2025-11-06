@@ -1,15 +1,14 @@
-import React from 'react';
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  loading?: boolean;
+}
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  className?: string;
-};
-
-export const Button: React.FC<ButtonProps> = ({ children, className = '', ...props }) => {
+export default function Button({ children, loading, ...props }: ButtonProps) {
   return (
-    <button {...props} className={`inline-flex items-center justify-center ${className}`}>
-      {children}
+    <button
+      className="w-full bg-yellow-600 text-white py-2 rounded hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      {...props}
+    >
+      {loading ? "Processing..." : children}
     </button>
   );
-};
-
-export default Button;
+}

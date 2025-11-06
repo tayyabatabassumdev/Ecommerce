@@ -11,7 +11,9 @@ export interface IProduct extends Document {
   name: string;
   description?: string;
   category?: string;
+
   basePrice: number;
+  stock:number;
   images: string[];
     image?: string; // Single main image
     variants: Types.DocumentArray<IVariant & Document>;

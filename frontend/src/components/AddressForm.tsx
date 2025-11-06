@@ -1,114 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Address } from "../types/checkout";
-interface Props {
+
+interface AddressFormProps {
   onChange: (address: Address) => void;
 }
-const AddressForm: React.FC<Props> = ({ onChange }) => {
-  const [address, setAddress] = useState<Address>({
-    firstName: "",
-    lastName: "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "",
-    email: "",
-    phone: "",
-  });
+
+const initialAddress: Address = {
+  firstName: "",
+  lastName: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "",
+  email: "",
+  phone: "",
+};
+
+const AddressForm: React.FC<AddressFormProps> = ({ onChange }) => {
+  const [address, setAddress] = useState<Address>(initialAddress);
+
+  useEffect(() => {
+    onChange(address);
+  }, [address, onChange]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const updated = { ...address, [name]: value };
-    setAddress(updated);
-    onChange(updated);
+    setAddress((prev) => ({ ...prev, [name]: value }));
   };
+
+  const renderInput = (name: keyof Address, placeholder: string, type = "text", colSpan = 1, required = true) => (
+    <input
+      name={name}
+      type={type}
+      value={address[name]}
+      onChange={handleChange}
+      placeholder={placeholder}
+      className={`border p-3 rounded-lg ${colSpan > 1 ? "sm:col-span-2" : ""}`}
+      required={required}
+    />
+  );
+
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <h3 className="text-xl font-semibold mb-4">Shipping Address</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <input
-          name="firstName"
-          value={address.firstName}
-          onChange={handleChange}
-          placeholder="First Name"
-          className="border p-3 rounded-lg w-full"
-          required
-        />
-        <input
-          name="lastName"
-          value={address.lastName}
-          onChange={handleChange}
-          placeholder="Last Name"
-          className="border p-3 rounded-lg w-full"
-          required
-        />
-        <input
-          name="email"
-          type="email"
-          value={address.email}
-          onChange={handleChange}
-          placeholder="Email"
-          className="border p-3 rounded-lg sm:col-span-2"
-          required
-        />
-        <input
-          name="phone"
-          type="tel"
-          value={address.phone}
-          onChange={handleChange}
-          placeholder="Phone Number"
-          className="border p-3 rounded-lg sm:col-span-2"
-          required
-        />
-        <input
-          name="line1"
-          value={address.line1}
-          onChange={handleChange}
-          placeholder="Address Line 1"
-          className="border p-3 rounded-lg sm:col-span-2"
-          required
-        />
-        <input
-          name="line2"
-          value={address.line2}
-          onChange={handleChange}
-          placeholder="Address Line 2"
-          className="border p-3 rounded-lg sm:col-span-2"
-        />
-        <input
-          name="city"
-          value={address.city}
-          onChange={handleChange}
-          placeholder="City"
-          className="border p-3 rounded-lg"
-          required
-        />
-        <input
-          name="state"
-          value={address.state}
-          onChange={handleChange}
-          placeholder="State / Province"
-          className="border p-3 rounded-lg"
-          required
-        />
-        <input
-          name="postalCode"
-          value={address.postalCode}
-          onChange={handleChange}
-          placeholder="Postal Code"
-          className="border p-3 rounded-lg"
-          required
-        />
-        <input
-          name="country"
-          value={address.country}
-          onChange={handleChange}
-          placeholder="Country"
-          className="border p-3 rounded-lg"
-          required
-        />
+        {renderInput("firstName", "First Name")}
+        {renderInput("lastName", "Last Name")}
+        {renderInput("email", "Email", "email", 2)}
+        {renderInput("phone", "Phone Number", "tel", 2)}
+        {renderInput("line1", "Address Line 1", "text", 2)}
+        {renderInput("city", "City")}
+        {renderInput("state", "State / Province")}
+        {renderInput("postalCode", "Postal Code")}
+        {renderInput("country", "Country")}
       </div>
     </div>
   );
 };
+
 export default AddressForm;

@@ -1,5 +1,30 @@
 import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
+const ensureLoggedIn = (): string => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "/login";
+    throw new Error("User not logged in");
+  }
+  return token;
+};
+const authHeaders = () => {
+  const token = ensureLoggedIn();
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
+const handleError = (err: unknown, context: string): never => {
+  if (axios.isAxiosError(err)) {
+    console.error(`${context} Error:`, err.response?.data || err.message);
+  } else {
+    console.error(`${context} Error:`, err);
+  }
+  throw err;
+};
+
 export interface CartProduct {
   _id: string;
   name: string;
@@ -7,6 +32,7 @@ export interface CartProduct {
   images?: string[];
   image?: string;
 }
+
 export interface CartItem {
   _id: string;
   product: CartProduct;
@@ -14,34 +40,25 @@ export interface CartItem {
   priceAtAdd: number;
   variantId?: string;
 }
+
 export interface Cart {
   _id?: string;
   user?: string;
   items: CartItem[];
 }
-const authHeaders = () => {
-  const token = localStorage.getItem("token");
-  return token
-    ? {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    : {};
-};
+
 
 export const getCart = async (): Promise<Cart> => {
   try {
-    const res = await axios.get(`${API_URL}/cart`, authHeaders());
-    if (res.data?.success) {
-      return res.data.data;
-    }
-    console.warn("Unexpected cart response:", res.data);
-    return { items: [] };
-  } catch (err: any) {
-    console.error("Get Cart Error:", err.response?.data || err.message);
-    throw err;
+    const res = await axios.get<{ success: boolean; data: Cart }>(
+      `${API_URL}/cart`,
+      authHeaders()
+    );
+    return res.data.success ? res.data.data : { items: [] };
+  } catch (err) {
+    handleError(err, "Get Cart");
   }
+  throw new Error("Unreachable");
 };
 
 export const addToCart = async (
@@ -50,68 +67,57 @@ export const addToCart = async (
   price?: number
 ): Promise<Cart> => {
   try {
-    const payload = { productId, quantity, price };
-    const res = await axios.post(`${API_URL}/cart`, payload, authHeaders());
-    if (res.data?.success) {
-      return res.data.data;
-    }
-    console.warn("Unexpected addToCart response:", res.data);
-    return { items: [] };
-  } catch (err: any) {
-    console.error("Add to Cart Error:", err.response?.data || err.message);
-    throw err;
+    const res = await axios.post<{ success: boolean; data: Cart }>(
+      `${API_URL}/cart`,
+      { productId, quantity, price },
+      authHeaders()
+    );
+    return res.data.success ? res.data.data : { items: [] };
+  } catch (err) {
+    handleError(err, "Add to Cart");
   }
+  throw new Error("Unreachable");
 };
+
 export const updateCartQuantity = async (
   productId: string,
   quantity: number
 ): Promise<CartItem> => {
   try {
-    const payload = { productId, quantity };
-    const res = await axios.put(`${API_URL}/cart`, payload, authHeaders());
-    if (res.data?.success) {
-      const updatedCart = res.data.data as Cart;
-      const updatedItem = updatedCart.items.find(
-        (i) => i.product._id === productId
-      );
-      if (!updatedItem) throw new Error("Updated item not found");
-      return updatedItem;
-    }
-    throw new Error(res.data?.message || "Failed to update quantity");
-  } catch (err: any) {
-    console.error("Update Quantity Error:", err.response?.data || err.message);
-    throw err;
+    const res = await axios.put<{ success: boolean; data: Cart }>(
+      `${API_URL}/cart`,
+      { productId, quantity },
+      authHeaders()
+    );
+
+    if (!res.data.success) throw new Error("Failed to update quantity");
+
+    const updatedItem = res.data.data.items.find(
+      (i) => i.product._id === productId
+    );
+    if (!updatedItem) throw new Error("Updated item not found");
+
+    return updatedItem;
+  } catch (err) {
+    handleError(err, "Update Cart Quantity");
   }
+  throw new Error("Unreachable");
 };
+
 export const removeCartItem = async (productId: string): Promise<void> => {
   try {
     await axios.delete(`${API_URL}/cart/${productId}`, authHeaders());
-  } catch (err: any) {
-    console.error("Remove Item Error:", err.response?.data || err.message);
-    throw err;
+  } catch (err) {
+    handleError(err, "Remove Cart Item");
   }
+  throw new Error("Unreachable");
 };
+
 export const clearCart = async (): Promise<void> => {
   try {
     await axios.delete(`${API_URL}/cart`, authHeaders());
-  } catch (err: any) {
-    console.error("Clear Cart Error:", err.response?.data || err.message);
-    throw err;
+  } catch (err) {
+    handleError(err, "Clear Cart");
   }
-};
-export const syncCart = async (
-  guestCartItems: CartItem[]
-): Promise<Cart> => {
-  try {
-    const payload = { guestCart: guestCartItems };
-    const res = await axios.post(`${API_URL}/cart/sync`, payload, authHeaders());
-    if (res.data?.success) {
-      return res.data.data;
-    }
-    console.warn("Unexpected syncCart response:", res.data);
-    return { items: [] };
-  } catch (err: any) {
-    console.error("Sync Cart Error:", err.response?.data || err.message);
-    throw err;
-  }
+  throw new Error("Unreachable");
 };

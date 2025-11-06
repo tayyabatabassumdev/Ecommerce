@@ -11,18 +11,15 @@ import orderRoutes from "./routes/orderRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import returnRoutes from "./routes/returnRoutes";
-import pageRoutes from "./routes/pageRoutes";
-import termRoutes from "./routes/termRoutes";
+import { connectDB } from "./config/db";
 import { errorHandler } from "./middleware/errorMiddleware";
-
+const PORT = process.env.PORT
 const app = express();
-app.use(cors({origin: "http://localhost:5173", // frontend URL
-    credentials: true, // allow cookies / credential
-    // 
+app.use(cors({origin: "http://localhost:5173",
+    credentials: true,
     }));
 app.use(express.json());
 dotenv.config();
-app.get("/", (_req, res) => res.json({ success: true, message: "API is live" }));
 app.use("/api/test", testRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
@@ -33,8 +30,10 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/returns", returnRoutes);
-app.use("/api/pages", pageRoutes);
-app.use("/api/terms", termRoutes);
 app.use(errorHandler);
+(async () => {
+  await connectDB();
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+})();
 
 export default app;

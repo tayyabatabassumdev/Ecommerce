@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useProducts } from "@/hooks/useProducts";
-import ProductCard from "@/components/ProductCard";
-import Header from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import ProductCard from "@/components/ProductCard/ProductCard";
+import Header from "@/components/Navbar/Navbar";
+import Footer from "@/components/Footer/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 const Shop = () => {
   const { products, loading } = useProducts();

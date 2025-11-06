@@ -23,17 +23,20 @@ export const useSearchStore = create<SearchState>((set) => ({
     set({ loading: true });
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products?search=${encodeURIComponent(
-          query
-        )}`
+        `${
+          import.meta.env.VITE_API_URL
+        }/products/search?name=${encodeURIComponent(query)}`
       );
+
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      set({ results: data.products || data, loading: false }); // adjust if your API returns differently
+
+      set({ results: data.data || [], loading: false });
     } catch (err) {
       console.error("Search error:", err);
       set({ loading: false, results: [] });
     }
   },
+
   clearSearch: () => set({ query: "", results: [] }),
 }));

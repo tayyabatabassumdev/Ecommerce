@@ -5,7 +5,6 @@ import { User } from "../models/User";
 interface JwtPayload {
   id: string;
 }
-
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token;
 
@@ -20,7 +19,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         res.status(404).json({ success: false, message: "User not found" });
         return;
       }
-
       (req as any).user = user;
       next();
     } catch (err) {

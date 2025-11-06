@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useCartStore } from "../store/cartStore";
 import { useWishlistStore } from "../store/wishlistStore";
 import ReviewsModule from "@/components/ReviewsModule";
+import toast from "react-hot-toast";
 import { Star, CheckCircle, XCircle, Truck, Heart } from "lucide-react";
 interface Product {
   _id: string;
@@ -54,26 +55,55 @@ const ProductDetails = () => {
     }
   }, [wishlist, product]);
   const handleAddToCart = async () => {
-    if (!product) return;
-    setAdding(true);
-    try {
-      await addItem(product._id, 1, product.basePrice);
-      alert("Added to cart!");
-    } finally {
-      setAdding(false);
-    }
-  };
+  if (!product) return;
+
+  
+  const token = localStorage.getItem("token"); 
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  setAdding(true);
+  try {
+    await addItem(product._id, 1, product.basePrice);
+  } finally {
+    setAdding(false);
+  }
+};
+
   const handleBuyNow = () => {
-    if (!product) return;
-    addItem(product._id, 1, product.basePrice);
-    navigate("/checkout");
-  };
-  const toggleWishlist = () => {
-    if (!product) return;
-    if (wishlisted) removeFromWishlist(product._id);
-    else addToWishlist(product);
-    setWishlisted(!wishlisted);
-  };
+  if (!product) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  addItem(product._id, 1, product.basePrice);
+  navigate("/checkout");
+};
+
+const toggleWishlist = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  if (!product) return;
+
+  if (wishlisted) {
+    removeFromWishlist(product._id);
+    toast("Removed from wishlist", { icon: "❌" });
+  } else {
+    addToWishlist(product);
+    toast("Added to wishlist", { icon: "❤️" });
+  }
+
+  setWishlisted(!wishlisted);
+};
 
   if (loading)
     return (

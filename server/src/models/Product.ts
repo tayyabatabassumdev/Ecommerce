@@ -17,6 +17,7 @@ const ProductSchema = new Schema<IProduct>(
     name: { type: String, required: true, trim: true },
     description: { type: String },
     category: { type: String },
+     stock: { type: Number, required: true, min: 0 },
     basePrice: { type: Number, required: true },
     images: { type: [String], default: [] },
     variants: { type: [VariantSchema], default: [] },
@@ -27,3 +28,4 @@ const ProductSchema = new Schema<IProduct>(
 );
 
 export const Product = mongoose.model<IProduct>("Product", ProductSchema);
+

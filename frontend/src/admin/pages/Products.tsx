@@ -63,7 +63,7 @@ const Products: React.FC = () => {
             Products
           </h1>
           <button
-            onClick={() => navigate("/admin/add-product")}
+            onClick={() => navigate("addproducts")}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl shadow transition"
           >
             <Plus className="w-5 h-5" /> Add Product
